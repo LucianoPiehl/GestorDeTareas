@@ -2,13 +2,34 @@ from flask import Blueprint, jsonify, request
 from crud.db import get_db
 
 tareas_bp = Blueprint('tareas', __name__)
-@tareas_bp.route('/obtenerTareas')
+@tareas_bp.route('/obtenerTareas', methods=['GET'])
 def obtenerTareas():
     db = get_db()
     cursor = db.cursor()
     cursor.execute("SELECT * FROM TAREA")
-    response = cursor.fetchall()
-    return str(response)
+
+    column_names = [desc[0] for desc in cursor.description]
+   
+    lista = [dict(zip(column_names, row)) for row in cursor.fetchall()]
+    return jsonify(lista)
+
+@tareas_bp.route('/obtenerTarea/<int:id>', methods=['GET'])
+def obtenerTarea(id):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM tarea WHERE idTarea = %s", (id,))
+    tarea = cursor.fetchone()
+    
+    if not tarea:
+        return jsonify({"error": "Tarea no encontrada"}), 404
+
+    return jsonify({
+        "idTarea": tarea[0],
+        "nombreTarea": tarea[1],
+        "fechaFin": tarea[2],
+        "fechaInicio": tarea[3],
+        "estado": tarea[4]
+    })
 
 @tareas_bp.route('/insertarTareas',methods=['POST'])
 def insertarTarea():
