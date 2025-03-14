@@ -44,10 +44,20 @@ def insertarEmpleado():
     
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("""INSERT into empleado (idEmpleado, nombre, apellido, rol)
-               VALUES (%s, %s, %s, %s);""",(id, nombre, apellido, rol))
+    cursor.execute("""
+        INSERT INTO empleado (nombre, apellido, rol)
+        VALUES (%s, %s, %s);
+    """, (nombre, apellido, rol))
     db.commit()
-    return jsonify({"mensaje": "Empleado creado", "id": id, "nombreEmpleado": nombre, "apellido":apellido, "rol":rol})
+    idEmpleado = cursor.lastrowid
+
+    return jsonify({
+        "mensaje": "Empleado creado",
+        "id": idEmpleado,
+        "nombre": nombre,
+        "apellido": apellido,
+        "rol": rol
+    })
 
 
 @empleados_bp.route('/eliminarEmpleado/<int:id>',methods=['DELETE'])
@@ -123,3 +133,16 @@ def eliminarAsociacionTareaEmpleado(idEmpleado, idTarea):
     db.commit()
 
     return jsonify({"mensaje": "Asociación eliminada correctamente", "idEmpleado": idEmpleado, "idTarea": idTarea})
+
+@empleados_bp.route('/<int:idEmpleado>/tareas', methods=['GET'])
+def obtenerTareasEmpleado(idEmpleado):
+    db = get_db()
+    cursor = db.cursor()
+
+    # Obtener las tareas asociadas al empleado
+    cursor.execute("SELECT t.idTarea, t.nombreTarea FROM tarea t JOIN tareaxempleado te ON t.idTarea = te.idTarea WHERE te.idEmpleado = %s", (idEmpleado,))
+    tareas = cursor.fetchall()
+    if not tareas:
+            return jsonify([]) 
+   
+    return jsonify(tareas)

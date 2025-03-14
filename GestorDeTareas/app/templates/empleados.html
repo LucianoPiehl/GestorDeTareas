@@ -1,0 +1,281 @@
+<!-- HTML: Lista de Empleados -->
+<div id="empleados-lista">
+    <h2>Lista de Empleados</h2>
+    <table id="empleadosTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Rol</th>
+                <th>Tareas Asociadas</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Los empleados se insertarán aquí con JavaScript -->
+        </tbody>
+    </table>
+</div>
+
+<!-- Script: Obtener empleados y tareas asociadas -->
+<script>
+    async function obtenerEmpleados() {
+        const response = await fetch('/empleados/obtenerEmpleados');
+        const empleados = await response.json();
+
+        const empleadosTable = document.querySelector('#empleadosTable tbody');
+        empleadosTable.innerHTML = ''; // Limpiar la tabla
+
+        for (const empleado of empleados) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${empleado.idEmpleado}</td>
+                <td>${empleado.nombre}</td>
+                <td>${empleado.apellido}</td>
+                <td>${empleado.rol}</td>
+                <td id="tareas-${empleado.idEmpleado}"></td>
+                <td>
+                    <button onclick="verEmpleado(${empleado.idEmpleado})">Ver</button>
+                    <button onclick="eliminarEmpleado(${empleado.idEmpleado})">Eliminar</button>
+                    <button onclick="mostrarFormularioActualizar(${empleado.idEmpleado})">Actualizar</button>
+                    <button onclick="asociarTareaAEmpleado(${empleado.idEmpleado})">Asociar Tarea</button>
+                </td>
+            `;
+            empleadosTable.appendChild(tr);
+
+            // Obtener tareas asociadas
+            await obtenerTareasEmpleado(empleado.idEmpleado);
+        }
+    }
+
+    window.onload = obtenerEmpleados;
+</script>
+
+<!-- HTML: Formulario para insertar nuevo empleado -->
+<div id="insertarEmpleado">
+    <h2>Agregar Nuevo Empleado</h2>
+    <form id="formInsertarEmpleado">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" required><br><br>
+
+        <label for="apellido">Apellido:</label>
+        <input type="text" id="apellido" required><br><br>
+
+        <label for="rol">Rol:</label>
+        <input type="text" id="rol" required><br><br>
+
+        <button type="submit">Crear Empleado</button>
+    </form>
+</div>
+
+<!-- Script: Insertar nuevo empleado -->
+<script>
+    document.querySelector('#formInsertarEmpleado').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const nombre = document.querySelector('#nombre').value;
+        const apellido = document.querySelector('#apellido').value;
+        const rol = document.querySelector('#rol').value;
+
+        const response = await fetch('/empleados/insertarEmpleado', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ nombre, apellido, rol }),
+        });
+
+        const data = await response.json();
+        alert(data.mensaje); // Mostrar mensaje de éxito
+        // Comprobar si el campo 'id' existe, indicando que el empleado se insertó correctamente
+        if (data.id) {
+            obtenerEmpleados(); // Actualizar la lista de empleados
+        } else {
+            console.log(data,data.id)
+            console.error('Error al crear empleado');
+        }
+       
+    });
+</script>
+
+<!-- Script: Eliminar empleado -->
+<script>
+    async function eliminarEmpleado(id) {
+        const response = await fetch(`/empleados/eliminarEmpleado/${id}`, {
+            method: 'DELETE',
+        });
+
+        const data = await response.json();
+        alert(data.mensaje); // Mostrar mensaje de éxito
+        obtenerEmpleados(); // Actualizar la lista de empleados
+    }
+</script>
+
+<!-- HTML: Formulario de actualización de empleado -->
+<div id="actualizarEmpleado" style="display:none;">
+    <h2>Actualizar Empleado</h2>
+    <form id="formActualizarEmpleado">
+        <input type="hidden" id="idEmpleadoActualizar">
+        <label for="nombreActualizar">Nombre:</label>
+        <input type="text" id="nombreActualizar" required><br><br>
+
+        <label for="apellidoActualizar">Apellido:</label>
+        <input type="text" id="apellidoActualizar" required><br><br>
+
+        <label for="rolActualizar">Rol:</label>
+        <input type="text" id="rolActualizar" required><br><br>
+
+        <button type="submit">Actualizar Empleado</button>
+    </form>
+</div>
+
+<!-- Script: Mostrar formulario de actualización de empleado -->
+<script>
+    function mostrarFormularioActualizar(id) {
+        const formulario = document.querySelector('#actualizarEmpleado');
+        formulario.style.display = 'block';
+
+        // Obtener los datos del empleado
+        fetch(`/empleados/obtenerEmpleado/${id}`)
+            .then(response => response.json())
+            .then(empleado => {
+                document.querySelector('#idEmpleadoActualizar').value = empleado.idEmpleado;
+                document.querySelector('#nombreActualizar').value = empleado.nombreEmpleado;
+                document.querySelector('#apellidoActualizar').value = empleado.apellidoEmpleado;
+                document.querySelector('#rolActualizar').value = empleado.rol;
+            });
+    }
+
+    document.querySelector('#formActualizarEmpleado').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const id = document.querySelector('#idEmpleadoActualizar').value;
+        const nombre = document.querySelector('#nombreActualizar').value;
+        const apellido = document.querySelector('#apellidoActualizar').value;
+        const rol = document.querySelector('#rolActualizar').value;
+
+        const response = await fetch(`/empleados/actualizarEmpleado/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ nombre, apellido, rol }),
+        });
+
+        const data = await response.json();
+        alert(data.mensaje); // Mostrar mensaje de éxito
+        obtenerEmpleados(); // Actualizar la lista de empleados
+        document.querySelector('#actualizarEmpleado').style.display = 'none'; // Ocultar el formulario
+    });
+</script>
+
+<!-- HTML: Formulario para asociar tarea a empleado -->
+<div id="asociarTareaEmpleado" style="display:none;">
+    <h2>Asociar Tarea a Empleado</h2>
+    <form id="formAsociarTarea">
+        <label for="idTarea">Seleccionar Tarea:</label>
+        <select id="seleccionarTarea">
+            <!-- Las tareas se insertarán aquí con JavaScript -->
+        </select><br><br>
+
+        <label for="rolTarea">Rol (0 para Empleado, 1 para Jefe):</label>
+        <input type="number" id="rolTarea" required><br><br>
+
+        <button type="submit">Asociar Tarea</button>
+    </form>
+</div>
+
+<!-- Script: Obtener y llenar el select con las tareas existentes -->
+<script>
+async function obtenerTareas() {
+    const response = await fetch('/tareas/obtenerTareas');
+    const tareas = await response.json();
+    const seleccionarTarea = document.querySelector('#seleccionarTarea');
+    
+    // Limpiar el select antes de agregar las nuevas opciones
+    seleccionarTarea.innerHTML = '<option value="">Seleccione una tarea</option>'; 
+
+    // Llenar el select con las tareas obtenidas
+    tareas.forEach(tarea => {
+        const option = document.createElement('option');
+        option.value = tarea.idTarea; // El valor del option será el id de la tarea
+        option.textContent = tarea.nombreTarea; // El texto será el nombre de la tarea
+        seleccionarTarea.appendChild(option);
+    });
+}
+</script>
+
+<!-- Script: Obtener tareas de un empleado -->
+ <script>
+async function obtenerTareasEmpleado(idEmpleado) {
+    const response = await fetch(`/empleados/${idEmpleado}/tareas`);
+    const tareas = await response.json();
+    const tareasTd = document.querySelector(`#tareas-${idEmpleado}`);
+    
+    tareasTd.innerHTML = ''; // Limpiar las tareas previas
+
+    if (tareas.length === 0) {
+        tareasTd.innerHTML = 'No tiene tareas asociadas';
+    } else {
+        tareas.forEach(tarea => {
+            const [idTarea, nombreTarea] = tarea; // Desestructuramos el array de cada tarea
+
+            if (nombreTarea) { // Verifica que exista nombreTarea
+                const tareaSpan = document.createElement('span');
+                tareaSpan.innerHTML = `${nombreTarea} <button onclick="eliminarTareaEmpleado(${idEmpleado}, ${idTarea})">Desasignar Tarea</button><br>`;
+                tareasTd.appendChild(tareaSpan);
+            } else {
+                console.error('nombreTarea no encontrado:', tarea);
+            }
+        });
+    }
+}
+</script>
+
+<!-- Script: Asociar tarea a empleado -->
+<script>
+    async function asociarTareaAEmpleado(idEmpleado) {
+        // Mostrar el formulario para asociar tarea
+        document.querySelector('#asociarTareaEmpleado').style.display = 'block';
+        
+        // Obtener las tareas disponibles
+        await obtenerTareas();
+
+        // Evento para enviar el formulario de asociar tarea
+        document.querySelector('#formAsociarTarea').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const idTarea = document.querySelector('#seleccionarTarea').value;
+            const rol = document.querySelector('#rolTarea').value;
+
+            // Realizar la solicitud POST para asociar la tarea al empleado
+            const response = await fetch(`/empleados/asociarTareaAEmpleado/${idEmpleado}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ idTarea, rol }),
+            });
+
+            const data = await response.json();
+            alert(data.mensaje); // Mostrar mensaje de éxito
+            document.querySelector('#asociarTareaEmpleado').style.display = 'none'; // Ocultar el formulario
+            obtenerEmpleados(); // Actualizar la lista de empleados
+        });
+    }
+
+    async function eliminarTareaEmpleado(idEmpleado, idTarea) {
+        const response = await fetch(`/empleados/${idEmpleado}/eliminarTareaDeEmpleado/${idTarea}`, {
+            method: 'DELETE',
+        });
+
+        const data = await response.json();
+        alert(data.mensaje); // Mostrar mensaje de éxito
+        obtenerEmpleados(); // Actualizar la lista de empleados y tareas
+    }
+
+    // Llamada a la función para cargar empleados al cargar la página
+    window.onload = obtenerEmpleados;
+
+</script>
