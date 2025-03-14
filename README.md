@@ -109,4 +109,85 @@
 **Respuesta:**
 ```json
 {
-    "mensaje": "Tar
+    "mensaje": "Tarea asociada correctamente",
+    "idEmpleado": 1,
+    "idTarea": 5
+}
+
+---
+
+## Endpoints de Equipos  
+
+### Obtener todos los equipos  
+**URL:** `/obtenerEquipos`  
+**Método:** `GET`  
+**Descripción:** Devuelve una lista de todos los equipos.  
+
+---
+
+### Obtener un equipo por ID  
+**URL:** `/obtenerEquipo/<int:id>`  
+**Método:** `GET`  
+**Descripción:** Devuelve la información de un equipo por su ID.  
+
+---
+
+### Insertar un nuevo equipo  
+**URL:** `/insertarEquipo`  
+**Método:** `POST`  
+**Descripción:** Crea un nuevo equipo.  
+
+---
+
+### Eliminar un equipo  
+**URL:** `/eliminarEquipo/<int:id>`  
+**Método:** `DELETE`  
+**Descripción:** Elimina un equipo por su ID.  
+
+---
+
+### Asociar un empleado a un equipo  
+**URL:** `/asociarEmpleadoAEquipo/<int:idEquipo>`  
+**Método:** `POST`  
+**Descripción:** Asocia un empleado a un equipo.  
+
+---
+
+## Endpoints de Tareas  
+
+### Obtener todas las tareas  
+**URL:** `/obtenerTareas`  
+**Método:** `GET`  
+**Descripción:** Devuelve una lista de todas las tareas.  
+
+---
+
+### Obtener una tarea por ID  
+**URL:** `/obtenerTarea/<int:id>`  
+**Método:** `GET`  
+**Descripción:** Devuelve la información de una tarea específica por su ID.  
+
+---
+
+### Insertar una nueva tarea  
+**URL:** `/insertarTarea`  
+**Método:** `POST`  
+**Descripción:** Crea una nueva tarea.  
+
+---
+
+### Eliminar una tarea  
+**URL:** `/eliminarTarea/<int:id>`  
+**Método:** `DELETE`  
+**Descripción:** Elimina una tarea por su ID.  
+
+---
+
+### Actualizar una tarea  
+**URL:** `/actualizarTarea/<int:id>`  
+**Método:** `PUT`  
+**Descripción:** Actualiza la información de una tarea existente.  
+
+---
+
+Esta documentación cubre los endpoints principales de la API para gestionar empleados, equipos y tareas.
