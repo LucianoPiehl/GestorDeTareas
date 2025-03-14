@@ -31,7 +31,7 @@ def obtenerTarea(id):
         "estado": tarea[4]
     })
 
-@tareas_bp.route('/insertarTareas',methods=['POST'])
+@tareas_bp.route('/insertarTarea',methods=['POST'])
 def insertarTarea():
     data = request.get_json()  # Recibir JSON
     if not data:
@@ -75,5 +75,5 @@ def actualizarTarea(id):
     cursor.execute("""UPDATE tarea set nombreTarea=%s, fechaFin=%s, fechaInicio=%s, estado=%s
                     WHERE idTarea = %s;""",(nombreTarea, fechaFin, fechaInicio, estado, id))
     db.commit()
-    return jsonify({"mensaje": "Tarea actulizada", "id": id, "nombreTarea": nombreTarea, "fechaFin":fechaInicio, "fechaInicio":fechaInicio, "estado":estado})
+    return jsonify({"mensaje": "Tarea actualizada", "id": id, "nombreTarea": nombreTarea, "fechaFin":fechaInicio, "fechaInicio":fechaInicio, "estado":estado})
 
