@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Tareas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <h1>Bienvenido a la Gestión de Tareas</h1>
+    <div class="buttons">
+        <a href="/empleados" class="btn">Gestión de Empleados</a>
+        <a href="/equipos" class="btn">Gestión de Equipos</a>
+        <a href="/tareas" class="btn">Gestión de Tareas</a>
+        <!-- Botón de logout -->
+        <a href="{{ url_for('logout') }}" class="btn btn-logout">Cerrar Sesión</a>
+    </div>
+</body>
+</html>
