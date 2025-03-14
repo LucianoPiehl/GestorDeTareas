@@ -1,3 +1,4 @@
+from flask_bcrypt import Bcrypt
 from flask import Flask, redirect, render_template, render_template, request, session, url_for
 from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user
 
@@ -14,9 +15,10 @@ class User(UserMixin):
     def get_id(self):
         return self.id
 login_manager = LoginManager() 
+
 def create_app():
     app = Flask(__name__)
-  
+    bcrypt = Bcrypt(app)
     app.secret_key = 'supersecretkey'  # Necesario para manejar las sesiones
     login_manager.login_view = 'login'
     # Inicializar LoginManager
@@ -28,6 +30,38 @@ def create_app():
     app.register_blueprint(equipos_bp, url_prefix='/equipos')
     app.teardown_appcontext(close_db)
 
+    
+    @app.route('/register', methods=['GET', 'POST'])
+    def register():
+        if request.method == 'POST':
+            username = request.form['username']
+            contrasenia = request.form['contrasenia']
+            
+            # Verifica si el usuario ya existe
+            db = get_db()
+            cursor = db.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM users WHERE username=%s", (username,))
+            existing_user = cursor.fetchone()
+
+            if existing_user:
+                session['error'] = 'El nombre de usuario ya existe'
+                return redirect(url_for('register'))
+
+            # Crea una nueva cuenta con contraseña encriptada
+            hashed_password = bcrypt.generate_password_hash(contrasenia).decode('utf-8')  # Encriptar la contraseña
+            print(f"Tipo de hashed_password: {type(hashed_password)}")
+            print(f"Valor del hashed_password: {hashed_password}")
+
+            cursor.execute("INSERT INTO users (username, contrasenia) VALUES (%s, %s)", (username, hashed_password))
+            db.commit()
+            
+            return redirect(url_for('login'))
+
+        return render_template('register.html')
+    # Al iniciar sesión, verifica la contraseña hasheada
+    def check_user_password(user_input_password, db_stored_password):
+        return bcrypt.check_password_hash(db_stored_password, user_input_password)
+    
     @login_manager.user_loader
     def load_user(user_id):
         db = get_db()
@@ -51,7 +85,7 @@ def create_app():
             user = cursor.fetchone()
             
             # Validación de usuario
-            if user and user['contrasenia'] == contrasenia:
+            if user and check_user_password(contrasenia, user['contrasenia']):
                 # Crear un usuario y guardarlo en la sesión
                 user_obj = User(user['id'], user['username'])
                 login_user(user_obj)
@@ -62,12 +96,11 @@ def create_app():
         
         return render_template('login.html')
 
+
     @app.route('/logout')
     def logout():
         logout_user()
         return redirect(url_for('login'))
-
-
 
     @app.route('/')
     @login_required
