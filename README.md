@@ -113,8 +113,8 @@
     "idEmpleado": 1,
     "idTarea": 5
 }
+```
 
----
 
 ## Endpoints de Equipos  
 
