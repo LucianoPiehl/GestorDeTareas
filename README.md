@@ -114,7 +114,7 @@
     "idTarea": 5
 }
 ```
-# Documentación de la API
+
 
 ## Endpoints de Equipos  
 
