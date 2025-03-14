@@ -114,7 +114,7 @@
     "idTarea": 5
 }
 ```
-
+# Documentación de la API
 
 ## Endpoints de Equipos  
 
@@ -122,6 +122,15 @@
 **URL:** `/obtenerEquipos`  
 **Método:** `GET`  
 **Descripción:** Devuelve una lista de todos los equipos.  
+**Respuesta:**  
+```json
+[
+    {
+        "idEquipo": 1,
+        "nombre": "Equipo A"
+    }
+]
+```
 
 ---
 
@@ -129,6 +138,13 @@
 **URL:** `/obtenerEquipo/<int:id>`  
 **Método:** `GET`  
 **Descripción:** Devuelve la información de un equipo por su ID.  
+**Respuesta:**  
+```json
+{
+    "idEquipo": 1,
+    "nombre": "Equipo A"
+}
+```
 
 ---
 
@@ -136,6 +152,20 @@
 **URL:** `/insertarEquipo`  
 **Método:** `POST`  
 **Descripción:** Crea un nuevo equipo.  
+**Cuerpo de la petición:**  
+```json
+{
+    "nombre": "Equipo B"
+}
+```
+**Respuesta:**  
+```json
+{
+    "mensaje": "Equipo creado",
+    "idEquipo": 2,
+    "nombre": "Equipo B"
+}
+```
 
 ---
 
@@ -143,6 +173,13 @@
 **URL:** `/eliminarEquipo/<int:id>`  
 **Método:** `DELETE`  
 **Descripción:** Elimina un equipo por su ID.  
+**Respuesta:**  
+```json
+{
+    "mensaje": "Equipo eliminado",
+    "idEquipo": 1
+}
+```
 
 ---
 
@@ -150,6 +187,20 @@
 **URL:** `/asociarEmpleadoAEquipo/<int:idEquipo>`  
 **Método:** `POST`  
 **Descripción:** Asocia un empleado a un equipo.  
+**Cuerpo de la petición:**  
+```json
+{
+    "idEmpleado": 1
+}
+```
+**Respuesta:**  
+```json
+{
+    "mensaje": "Empleado asociado correctamente",
+    "idEmpleado": 1,
+    "idEquipo": 2
+}
+```
 
 ---
 
@@ -159,6 +210,15 @@
 **URL:** `/obtenerTareas`  
 **Método:** `GET`  
 **Descripción:** Devuelve una lista de todas las tareas.  
+**Respuesta:**  
+```json
+[
+    {
+        "idTarea": 5,
+        "descripcion": "Implementar API"
+    }
+]
+```
 
 ---
 
@@ -166,6 +226,13 @@
 **URL:** `/obtenerTarea/<int:id>`  
 **Método:** `GET`  
 **Descripción:** Devuelve la información de una tarea específica por su ID.  
+**Respuesta:**  
+```json
+{
+    "idTarea": 5,
+    "descripcion": "Implementar API"
+}
+```
 
 ---
 
@@ -173,6 +240,20 @@
 **URL:** `/insertarTarea`  
 **Método:** `POST`  
 **Descripción:** Crea una nueva tarea.  
+**Cuerpo de la petición:**  
+```json
+{
+    "descripcion": "Revisar código"
+}
+```
+**Respuesta:**  
+```json
+{
+    "mensaje": "Tarea creada",
+    "idTarea": 6,
+    "descripcion": "Revisar código"
+}
+```
 
 ---
 
@@ -180,6 +261,13 @@
 **URL:** `/eliminarTarea/<int:id>`  
 **Método:** `DELETE`  
 **Descripción:** Elimina una tarea por su ID.  
+**Respuesta:**  
+```json
+{
+    "mensaje": "Tarea eliminada",
+    "idTarea": 5
+}
+```
 
 ---
 
@@ -187,7 +275,22 @@
 **URL:** `/actualizarTarea/<int:id>`  
 **Método:** `PUT`  
 **Descripción:** Actualiza la información de una tarea existente.  
+**Cuerpo de la petición:**  
+```json
+{
+    "descripcion": "Actualizar documentación"
+}
+```
+**Respuesta:**  
+```json
+{
+    "mensaje": "Tarea actualizada",
+    "idTarea": 5,
+    "descripcion": "Actualizar documentación"
+}
+```
 
 ---
 
-Esta documentación cubre los endpoints principales de la API para gestionar empleados, equipos y tareas.
+
+
