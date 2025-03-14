@@ -70,3 +70,48 @@ def actualizarEquipo(id):
     db.commit()
     return jsonify({"mensaje": "Equipo actualizada", "id": id, "nombreEquipo": nombreEquipo})
 
+
+@equipos_bp.route('/asociarEmpleadoAEquipo/<int:idEquipo>', methods=['POST'])
+def asociarEmpleadoAEquipo(idEquipo):
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No se recibieron datos"}), 400
+
+    idEmpleado = data.get('idEmpleado')
+    if not idEmpleado:
+        return jsonify({"error": "idEmpleado es obligatorio"}), 400
+
+    db = get_db()
+    cursor = db.cursor()
+    rol = data.get('rol')
+
+    # Verificar si existen el empleado y la tarea
+    cursor.execute("SELECT 1 FROM empleado WHERE idEmpleado = %s", (idEmpleado,))
+    if not cursor.fetchone():
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    cursor.execute("SELECT 1 FROM equipo WHERE idEquipo = %s", (idEquipo,))
+    if not cursor.fetchone():
+        return jsonify({"error": "Equipo no encontrada"}), 404
+
+    # Asociar la tarea al empleado
+    cursor.execute("INSERT INTO empleadoxequipo (idEmpleado, idEquipo, rol) VALUES (%s, %s, %s)", (idEmpleado, idEquipo,rol))
+    db.commit()
+
+    return jsonify({"mensaje": "Equipo asociado correctamente", "idEmpleado": idEmpleado, "idEquipo": idEquipo})
+
+@equipos_bp.route('/<int:idEmpleado>/eliminarEmpleadoDeEquipo/<int:idEquipo>', methods=['DELETE'])
+def eliminarAsociacionEmpleadoEquipo(idEmpleado, idEquipo):
+    db = get_db()
+    cursor = db.cursor()
+
+    # Verificar si la asociación existe
+    cursor.execute("SELECT 1 FROM empleadoxequipo WHERE idEmpleado = %s AND idEquipo = %s", (idEmpleado, idEquipo))
+    if not cursor.fetchone():
+        return jsonify({"error": "La asociación no existe"}), 404
+
+    # Eliminar la asociación
+    cursor.execute("DELETE FROM empleadoxequipo WHERE idEmpleado = %s AND idEquipo = %s", (idEmpleado, idEquipo))
+    db.commit()
+
+    return jsonify({"mensaje": "Asociación eliminada correctamente", "idEmpleado": idEmpleado, "idEquipo": idEquipo})

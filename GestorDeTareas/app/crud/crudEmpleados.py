@@ -79,7 +79,7 @@ def actualizarEmpleado(id):
     db.commit()
     return jsonify({"mensaje": "Empleado actualizada", "id": id, "nombre": nombre, "apellido": apellido,"rol": rol})
 
-@empleados_bp.route('/asociarTarea/<int:idEmpleado>', methods=['POST'])
+@empleados_bp.route('/asociarTareaAEmpleado/<int:idEmpleado>', methods=['POST'])
 def asociarTareaAEmpleado(idEmpleado):
     data = request.get_json()
     if not data:
@@ -108,7 +108,7 @@ def asociarTareaAEmpleado(idEmpleado):
 
     return jsonify({"mensaje": "Tarea asociada correctamente", "idEmpleado": idEmpleado, "idTarea": idTarea})
 
-@empleados_bp.route('/<int:idEmpleado>/eliminarTarea/<int:idTarea>', methods=['DELETE'])
+@empleados_bp.route('/<int:idEmpleado>/eliminarTareaDeEmpleado/<int:idTarea>', methods=['DELETE'])
 def eliminarAsociacionTareaEmpleado(idEmpleado, idTarea):
     db = get_db()
     cursor = db.cursor()
