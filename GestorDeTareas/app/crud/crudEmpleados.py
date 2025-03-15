@@ -26,9 +26,9 @@ def obtenerEmpleado(id):
 
     return jsonify({
         "idEmpleado": empleado[0],
-        "nombreEmpleado": empleado[2],
-        "apellidoEmpleado": empleado[3],
-        "rol": empleado[1]
+        "nombreEmpleado": empleado[1],
+        "apellidoEmpleado": empleado[2],
+        "rol": empleado[3]
 
     })
 
@@ -133,10 +133,17 @@ def obtenerTareasEmpleado(idEmpleado):
     db = get_db()
     cursor = db.cursor()
 
-    # Obtener las tareas asociadas al empleado
-    cursor.execute("SELECT t.idTarea, t.nombreTarea FROM tarea t JOIN tareaxempleado te ON t.idTarea = te.idTarea WHERE te.idEmpleado = %s", (idEmpleado,))
+    # Obtener las tareas asociadas al empleado junto con el rol (Empleado o Jefe)
+    cursor.execute("""
+        SELECT t.idTarea, t.nombreTarea, te.rol 
+        FROM tarea t 
+        JOIN tareaxempleado te ON t.idTarea = te.idTarea 
+        WHERE te.idEmpleado = %s
+    """, (idEmpleado,))
     tareas = cursor.fetchall()
+    
     if not tareas:
-            return jsonify([]) 
-   
+        return jsonify([])  # Si no tiene tareas, devolver lista vacía
+    
+    # Devolver las tareas junto con el rol
     return jsonify(tareas)

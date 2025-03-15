@@ -88,3 +88,13 @@ input:focus, select:focus {
 #actualizarEmpleado, #asociarTareaEmpleado {
     display: none;
 }
+#empleadosTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#empleadosTable th, #empleadosTable td {
+    text-align: center; /* Centra el texto en las celdas */
+    padding: 8px; /* Agrega un poco de espacio para que se vea más ordenado */
+    border: 1px solid #ddd; /* Opcional: agregar borde a las celdas */
+}

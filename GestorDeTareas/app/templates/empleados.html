@@ -18,7 +18,15 @@
         </tbody>
     </table>
 </div>
-
+<style>
+    .jefe {
+        color: red;
+        font-weight: bold;
+    }
+    td[contenteditable="true"] {
+        background-color: #f9f9f9;
+    }
+</style>
 <!-- Script: Obtener empleados y tareas asociadas -->
 <script>
     async function obtenerEmpleados() {
@@ -32,13 +40,13 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${empleado.idEmpleado}</td>
-                <td>${empleado.nombre}</td>
-                <td>${empleado.apellido}</td>
-                <td>${empleado.rol}</td>
+                <td contenteditable="false" id="nombre-${empleado.idEmpleado}">${empleado.nombre}</td>
+                <td contenteditable="false" id="apellido-${empleado.idEmpleado}">${empleado.apellido}</td>
+                <td contenteditable="false" id="rol-${empleado.idEmpleado}">${empleado.rol}</td>
                 <td id="tareas-${empleado.idEmpleado}"></td>
                 <td>
+                    <button onclick="activarEdicion(${empleado.idEmpleado})">Actualizar</button>
                     <button onclick="eliminarEmpleado(${empleado.idEmpleado})">Eliminar</button>
-                    <button onclick="mostrarFormularioActualizar(${empleado.idEmpleado})">Actualizar</button>
                     <button onclick="asociarTareaAEmpleado(${empleado.idEmpleado})">Asociar Tarea</button>
                 </td>
             `;
@@ -121,110 +129,162 @@ async function obtenerTareas() {
 
 <!-- Script: Mostrar formulario de actualización de empleado -->
 <script>
-    function mostrarFormularioActualizar(id) {
-        const formulario = document.querySelector('#actualizarEmpleado');
-        formulario.style.display = 'block';
+   async function activarEdicion(idEmpleado) {
+        // Hacer que las celdas sean editables
+        document.querySelector(`#nombre-${idEmpleado}`).contentEditable = "true";
+        document.querySelector(`#apellido-${idEmpleado}`).contentEditable = "true";
+        document.querySelector(`#rol-${idEmpleado}`).contentEditable = "true";
 
-        // Obtener los datos del empleado
-        fetch(`/empleados/obtenerEmpleado/${id}`)
-            .then(response => response.json())
-            .then(empleado => {
-                document.querySelector('#idEmpleadoActualizar').value = empleado.idEmpleado;
-                document.querySelector('#nombreActualizar').value = empleado.nombreEmpleado;
-                document.querySelector('#apellidoActualizar').value = empleado.apellidoEmpleado;
-                document.querySelector('#rolActualizar').value = empleado.rol;
-            });
+        // Cambiar el texto del botón a "Guardar cambios"
+        const botones = document.querySelectorAll('button');
+        botones.forEach(boton => {
+            if (boton.textContent === "Actualizar") {
+                boton.textContent = "Guardar cambios";
+                boton.onclick = () => guardarCambios(idEmpleado);
+            }
+        });
     }
+    async function guardarCambios(idEmpleado) {
+        // Obtener los nuevos valores
+        const nombre = document.querySelector(`#nombre-${idEmpleado}`).textContent;
+        const apellido = document.querySelector(`#apellido-${idEmpleado}`).textContent;
+        const rol = document.querySelector(`#rol-${idEmpleado}`).textContent;
 
-    document.querySelector('#formActualizarEmpleado').addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const id = document.querySelector('#idEmpleadoActualizar').value;
-        const nombre = document.querySelector('#nombreActualizar').value;
-        const apellido = document.querySelector('#apellidoActualizar').value;
-        const rol = document.querySelector('#rolActualizar').value;
-
-        const response = await fetch(`/empleados/actualizarEmpleado/${id}`, {
+        const response = await fetch(`/empleados/actualizarEmpleado/${idEmpleado}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({id, nombre, apellido, rol }),
+            body: JSON.stringify({ nombre, apellido, rol }),
         });
 
         const data = await response.json();
         alert(data.mensaje); // Mostrar mensaje de éxito
         obtenerEmpleados(); // Actualizar la lista de empleados
-        document.querySelector('#actualizarEmpleado').style.display = 'none'; // Ocultar el formulario
-    });
+
+        // Desactivar la edición y restablecer el botón a "Actualizar"
+        document.querySelector(`#nombre-${idEmpleado}`).contentEditable = "false";
+        document.querySelector(`#apellido-${idEmpleado}`).contentEditable = "false";
+        document.querySelector(`#rol-${idEmpleado}`).contentEditable = "false";
+
+        const botones = document.querySelectorAll('button');
+        botones.forEach(boton => {
+            if (boton.textContent === "Guardar cambios") {
+                boton.textContent = "Actualizar";
+                boton.onclick = () => activarEdicion(idEmpleado);
+            }
+        });
+    }
+
+    window.onload = obtenerEmpleados;
+
 </script>
 
 
 
 <!-- Script: Obtener tareas de un empleado -->
 <script>
-    async function obtenerTareasEmpleado(idEmpleado) {
-        const response = await fetch(`/empleados/${idEmpleado}/tareas`);
-        const tareas = await response.json();
-        const tareasTd = document.querySelector(`#tareas-${idEmpleado}`);
-        
-        tareasTd.innerHTML = ''; // Limpiar las tareas previas
+async function obtenerTareasEmpleado(idEmpleado) {
+    const response = await fetch(`/empleados/${idEmpleado}/tareas`);
+    const tareas = await response.json();
+    const tareasTd = document.querySelector(`#tareas-${idEmpleado}`);
     
-        if (tareas.length === 0) {
-            tareasTd.innerHTML = 'No tiene tareas asociadas';
-        } else {
-            tareas.forEach(tarea => {
-                const [idTarea, nombreTarea] = tarea; // Desestructuramos el array de cada tarea
-    
-                if (nombreTarea) { // Verifica que exista nombreTarea
-                    const tareaSpan = document.createElement('span');
-                    tareaSpan.innerHTML = `${nombreTarea} <br>`;
-                    const btnEliminar = document.createElement('button');
-                    btnEliminar.textContent = 'Desasignar Tarea';
-                    btnEliminar.onclick = () => eliminarTareaEmpleado(idEmpleado, idTarea);
+    tareasTd.innerHTML = ''; // Limpiar las tareas previas
 
-                    tareaSpan.appendChild(btnEliminar);
-                    tareaSpan.appendChild(document.createElement('br'));
-                    tareasTd.appendChild(tareaSpan);
-                } else {
-                    console.error('nombreTarea no encontrado:', tarea);
+    if (tareas.length === 0) {
+        tareasTd.innerHTML = 'No tiene tareas asociadas';
+    } else {
+        tareas.forEach((tarea, index) => {
+            const [idTarea, nombreTarea, rol] = tarea; // Desestructuramos el array de cada tarea
+
+            if (nombreTarea) { // Verifica que exista nombreTarea
+                const tareaSpan = document.createElement('span');
+                const tareaDiv = document.createElement('div');
+                tareaDiv.classList.add('tarea'); // Agregamos una clase para aplicar estilos si es necesario
+                
+                // Crear el contenido de la tarea
+                const nombreTareaSpan = document.createElement('span');
+                nombreTareaSpan.textContent = nombreTarea;
+                tareaDiv.appendChild(nombreTareaSpan);
+                
+                // Crear el contenido del rol "Jefe" si corresponde
+                if (rol == 1) {
+                    const jefeSpan = document.createElement('span');
+                    jefeSpan.textContent = 'Jefe';
+                    jefeSpan.style.color = 'red'; // Hacer el texto rojo
+                    jefeSpan.style.fontWeight = 'bold'; // Poner en negrita
+                    jefeSpan.style.marginLeft = '20px'
+                    tareaDiv.appendChild(jefeSpan);
                 }
-            });
-        }
+
+                // Crear el botón de eliminar tarea
+                const btnEliminar = document.createElement('button');
+                btnEliminar.textContent = 'Desasignar Tarea';
+                btnEliminar.onclick = () => eliminarTareaEmpleado(idEmpleado, idTarea);
+                const salto = document.createElement('br');
+                tareaDiv.appendChild(salto);
+                tareaDiv.appendChild(btnEliminar);
+                
+                // Si no es la última tarea, agregar <hr>
+                if (index < tareas.length - 1) {
+                    const hr = document.createElement('hr');
+                    tareaDiv.appendChild(hr); // Agregar <hr> después de la tarea
+                }
+
+                tareasTd.appendChild(tareaDiv);
+            } else {
+                console.error('nombreTarea no encontrado:', tarea);
+            }
+        });
     }
+}
+
+
     </script>
 
 <!-- Script: Asociar tarea a empleado -->
 <script>
-    async function asociarTareaAEmpleado(idEmpleado) {
-        // Mostrar el formulario para asociar tarea
-        document.querySelector('#asociarTareaEmpleado').style.display = 'block';
-        
-        // Obtener las tareas disponibles
-        await obtenerTareas();
+let idEmpleadoSeleccionado = null;
 
-        // Evento para enviar el formulario de asociar tarea
-        document.querySelector('#formAsociarTarea').addEventListener('submit', async (e) => {
-            e.preventDefault();
+async function asociarTareaAEmpleado(idEmpleado) {
+    // Guardar el ID del empleado seleccionado para asociar la tarea más tarde
+    idEmpleadoSeleccionado = idEmpleado;
 
-            const idTarea = document.querySelector('#seleccionarTarea').value;
-            const rol = document.querySelector('#rolTarea').value;
-
-            // Realizar la solicitud POST para asociar la tarea al empleado
-            const response = await fetch(`/empleados/asociarTareaAEmpleado/${idEmpleado}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ idTarea, rol }),
-            });
-
-            const data = await response.json();
-            alert(data.mensaje); // Mostrar mensaje de éxito
-            document.querySelector('#asociarTareaEmpleado').style.display = 'none'; // Ocultar el formulario
-            obtenerEmpleados(); // Actualizar la lista de empleados
-        });
+    // Mostrar el formulario para asociar tarea
+    document.querySelector('#asociarTareaEmpleado').style.display = 'block';
+    
+    // Obtener las tareas disponibles
+    await obtenerTareas();
     }
+
+    // Añadir evento de submit al formulario solo una vez
+    document.querySelector('#formAsociarTarea').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Usar el idEmpleado guardado
+        if (!idEmpleadoSeleccionado) {
+            alert("No se ha seleccionado un empleado.");
+            return;
+        }
+
+        const idTarea = document.querySelector('#seleccionarTarea').value;
+        const rol = document.querySelector('#rolTarea').value;
+
+        // Realizar la solicitud POST para asociar la tarea al empleado
+        const response = await fetch(`/empleados/asociarTareaAEmpleado/${idEmpleadoSeleccionado}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ idTarea, rol }),
+        });
+
+        const data = await response.json();
+        alert(data.mensaje); // Mostrar mensaje de éxito
+        document.querySelector('#asociarTareaEmpleado').style.display = 'none'; // Ocultar el formulario
+        obtenerEmpleados(); // Actualizar la lista de empleados
+    });
+
 
     async function eliminarTareaEmpleado(idEmpleado, idTarea) {
         const response = await fetch(`/empleados/${idEmpleado}/eliminarTareaDeEmpleado/${idTarea}`, {
