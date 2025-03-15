@@ -1,5 +1,6 @@
 <!-- HTML: Lista de Empleados -->
 <div id="empleados-lista">
+    <link rel="stylesheet" href="../static/css/empleados.css">
     <h2>Lista de Empleados</h2>
     <table id="empleadosTable">
         <thead>
@@ -36,7 +37,6 @@
                 <td>${empleado.rol}</td>
                 <td id="tareas-${empleado.idEmpleado}"></td>
                 <td>
-                    <button onclick="verEmpleado(${empleado.idEmpleado})">Ver</button>
                     <button onclick="eliminarEmpleado(${empleado.idEmpleado})">Eliminar</button>
                     <button onclick="mostrarFormularioActualizar(${empleado.idEmpleado})">Actualizar</button>
                     <button onclick="asociarTareaAEmpleado(${empleado.idEmpleado})">Asociar Tarea</button>
@@ -52,51 +52,40 @@
     window.onload = obtenerEmpleados;
 </script>
 
-<!-- HTML: Formulario para insertar nuevo empleado -->
-<div id="insertarEmpleado">
-    <h2>Agregar Nuevo Empleado</h2>
-    <form id="formInsertarEmpleado">
-        <label for="nombre">Nombre:</label>
-        <input type="text" id="nombre" required><br><br>
+<!-- HTML: Formulario para asociar tarea a empleado -->
+<div id="asociarTareaEmpleado" style="display:none;">
+    <h2>Asociar Tarea a Empleado</h2>
+    <form id="formAsociarTarea">
+        <label for="idTarea">Seleccionar Tarea:</label>
+        <select id="seleccionarTarea">
+            <!-- Las tareas se insertarán aquí con JavaScript -->
+        </select><br><br>
 
-        <label for="apellido">Apellido:</label>
-        <input type="text" id="apellido" required><br><br>
+        <label for="rolTarea">Rol (0 para Empleado, 1 para Jefe):</label>
+        <input type="number" id="rolTarea" required><br><br>
 
-        <label for="rol">Rol:</label>
-        <input type="text" id="rol" required><br><br>
-
-        <button type="submit">Crear Empleado</button>
+        <button type="submit">Asociar Tarea</button>
     </form>
 </div>
 
-<!-- Script: Insertar nuevo empleado -->
+<!-- Script: Obtener y llenar el select con las tareas existentes -->
 <script>
-    document.querySelector('#formInsertarEmpleado').addEventListener('submit', async (e) => {
-        e.preventDefault();
+async function obtenerTareas() {
+    const response = await fetch('/tareas/obtenerTareas');
+    const tareas = await response.json();
+    const seleccionarTarea = document.querySelector('#seleccionarTarea');
+    
+    // Limpiar el select antes de agregar las nuevas opciones
+    seleccionarTarea.innerHTML = '<option value="">Seleccione una tarea</option>'; 
 
-        const nombre = document.querySelector('#nombre').value;
-        const apellido = document.querySelector('#apellido').value;
-        const rol = document.querySelector('#rol').value;
-
-        const response = await fetch('/empleados/insertarEmpleado', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ nombre, apellido, rol }),
-        });
-
-        const data = await response.json();
-        alert(data.mensaje); // Mostrar mensaje de éxito
-        // Comprobar si el campo 'id' existe, indicando que el empleado se insertó correctamente
-        if (data.id) {
-            obtenerEmpleados(); // Actualizar la lista de empleados
-        } else {
-            console.log(data,data.id)
-            console.error('Error al crear empleado');
-        }
-       
+    // Llenar el select con las tareas obtenidas
+    tareas.forEach(tarea => {
+        const option = document.createElement('option');
+        option.value = tarea.idTarea; // El valor del option será el id de la tarea
+        option.textContent = tarea.nombreTarea; // El texto será el nombre de la tarea
+        seleccionarTarea.appendChild(option);
     });
+}
 </script>
 
 <!-- Script: Eliminar empleado -->
@@ -160,7 +149,7 @@
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ nombre, apellido, rol }),
+            body: JSON.stringify({id, nombre, apellido, rol }),
         });
 
         const data = await response.json();
@@ -170,68 +159,40 @@
     });
 </script>
 
-<!-- HTML: Formulario para asociar tarea a empleado -->
-<div id="asociarTareaEmpleado" style="display:none;">
-    <h2>Asociar Tarea a Empleado</h2>
-    <form id="formAsociarTarea">
-        <label for="idTarea">Seleccionar Tarea:</label>
-        <select id="seleccionarTarea">
-            <!-- Las tareas se insertarán aquí con JavaScript -->
-        </select><br><br>
 
-        <label for="rolTarea">Rol (0 para Empleado, 1 para Jefe):</label>
-        <input type="number" id="rolTarea" required><br><br>
-
-        <button type="submit">Asociar Tarea</button>
-    </form>
-</div>
-
-<!-- Script: Obtener y llenar el select con las tareas existentes -->
-<script>
-async function obtenerTareas() {
-    const response = await fetch('/tareas/obtenerTareas');
-    const tareas = await response.json();
-    const seleccionarTarea = document.querySelector('#seleccionarTarea');
-    
-    // Limpiar el select antes de agregar las nuevas opciones
-    seleccionarTarea.innerHTML = '<option value="">Seleccione una tarea</option>'; 
-
-    // Llenar el select con las tareas obtenidas
-    tareas.forEach(tarea => {
-        const option = document.createElement('option');
-        option.value = tarea.idTarea; // El valor del option será el id de la tarea
-        option.textContent = tarea.nombreTarea; // El texto será el nombre de la tarea
-        seleccionarTarea.appendChild(option);
-    });
-}
-</script>
 
 <!-- Script: Obtener tareas de un empleado -->
- <script>
-async function obtenerTareasEmpleado(idEmpleado) {
-    const response = await fetch(`/empleados/${idEmpleado}/tareas`);
-    const tareas = await response.json();
-    const tareasTd = document.querySelector(`#tareas-${idEmpleado}`);
+<script>
+    async function obtenerTareasEmpleado(idEmpleado) {
+        const response = await fetch(`/empleados/${idEmpleado}/tareas`);
+        const tareas = await response.json();
+        const tareasTd = document.querySelector(`#tareas-${idEmpleado}`);
+        
+        tareasTd.innerHTML = ''; // Limpiar las tareas previas
     
-    tareasTd.innerHTML = ''; // Limpiar las tareas previas
+        if (tareas.length === 0) {
+            tareasTd.innerHTML = 'No tiene tareas asociadas';
+        } else {
+            tareas.forEach(tarea => {
+                const [idTarea, nombreTarea] = tarea; // Desestructuramos el array de cada tarea
+    
+                if (nombreTarea) { // Verifica que exista nombreTarea
+                    const tareaSpan = document.createElement('span');
+                    tareaSpan.innerHTML = `${nombreTarea} <br>`;
+                    const btnEliminar = document.createElement('button');
+                    btnEliminar.textContent = 'Desasignar Tarea';
+                    btnEliminar.onclick = () => eliminarTareaEmpleado(idEmpleado, idTarea);
 
-    if (tareas.length === 0) {
-        tareasTd.innerHTML = 'No tiene tareas asociadas';
-    } else {
-        tareas.forEach(tarea => {
-            const [idTarea, nombreTarea] = tarea; // Desestructuramos el array de cada tarea
-
-            if (nombreTarea) { // Verifica que exista nombreTarea
-                const tareaSpan = document.createElement('span');
-                tareaSpan.innerHTML = `${nombreTarea} <button onclick="eliminarTareaEmpleado(${idEmpleado}, ${idTarea})">Desasignar Tarea</button><br>`;
-                tareasTd.appendChild(tareaSpan);
-            } else {
-                console.error('nombreTarea no encontrado:', tarea);
-            }
-        });
+                    tareaSpan.appendChild(btnEliminar);
+                    tareaSpan.appendChild(document.createElement('br'));
+                    tareasTd.appendChild(tareaSpan);
+                } else {
+                    console.error('nombreTarea no encontrado:', tarea);
+                }
+            });
+        }
     }
-}
-</script>
+    </script>
 
 <!-- Script: Asociar tarea a empleado -->
 <script>
@@ -278,4 +239,50 @@ async function obtenerTareasEmpleado(idEmpleado) {
     // Llamada a la función para cargar empleados al cargar la página
     window.onload = obtenerEmpleados;
 
+</script>
+<!-- HTML: Formulario para insertar nuevo empleado -->
+<div id="insertarEmpleado">
+    <h2>Agregar Nuevo Empleado</h2>
+    <form id="formInsertarEmpleado">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" required><br><br>
+
+        <label for="apellido">Apellido:</label>
+        <input type="text" id="apellido" required><br><br>
+
+        <label for="rol">Rol:</label>
+        <input type="text" id="rol" required><br><br>
+
+        <button type="submit">Crear Empleado</button>
+    </form>
+</div>
+
+<!-- Script: Insertar nuevo empleado -->
+<script>
+    document.querySelector('#formInsertarEmpleado').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const nombre = document.querySelector('#nombre').value;
+        const apellido = document.querySelector('#apellido').value;
+        const rol = document.querySelector('#rol').value;
+
+        const response = await fetch('/empleados/insertarEmpleado', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ nombre, apellido, rol }),
+        });
+
+        const data = await response.json();
+        alert(data.mensaje); // Mostrar mensaje de éxito
+        // Comprobar si el campo 'id' existe, indicando que el empleado se insertó correctamente
+        if (data.id) {
+            obtenerEmpleados(); // Actualizar la lista de empleados
+        } else {
+            console.log(data,data.id)
+            console.error('Error al crear empleado');
+        }
+       
+    });
 </script>

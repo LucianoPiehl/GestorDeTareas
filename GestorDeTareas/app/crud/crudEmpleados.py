@@ -79,7 +79,6 @@ def actualizarEmpleado(id):
     nombre = data.get('nombre')
     apellido = data.get('apellido')
     rol = data.get('rol')
-    id = data.get('id')
 
 
     db = get_db()
@@ -122,11 +121,6 @@ def asociarTareaAEmpleado(idEmpleado):
 def eliminarAsociacionTareaEmpleado(idEmpleado, idTarea):
     db = get_db()
     cursor = db.cursor()
-
-    # Verificar si la asociación existe
-    cursor.execute("SELECT 1 FROM tareaxempleado WHERE idEmpleado = %s AND idTarea = %s", (idEmpleado, idTarea))
-    if not cursor.fetchone():
-        return jsonify({"error": "La asociación no existe"}), 404
 
     # Eliminar la asociación
     cursor.execute("DELETE FROM tareaxempleado WHERE idEmpleado = %s AND idTarea = %s", (idEmpleado, idTarea))
