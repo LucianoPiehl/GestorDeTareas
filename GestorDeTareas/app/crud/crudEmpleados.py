@@ -26,9 +26,9 @@ def obtenerEmpleado(id):
 
     return jsonify({
         "idEmpleado": empleado[0],
-        "nombreEmpleado": empleado[1],
-        "apellidoEmpleado": empleado[2],
-        "rol": empleado[3]
+        "nombreEmpleado": empleado[2],
+        "apellidoEmpleado": empleado[3],
+        "rol": empleado[1]
 
     })
 
