@@ -1,0 +1,290 @@
+<!-- HTML: Lista de Tareas -->
+<div id="tareas-lista">
+    <link rel="stylesheet" href="styles.css">
+    <h2>Lista de Tareas</h2>
+    <table id="tareasTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Fecha de Inicio</th>
+                <th>Fecha de Fin</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Las tareas se insertarán aquí con JavaScript -->
+        </tbody>
+    </table>
+</div>
+<script>
+
+    // Función para obtener las tareas desde el servidor
+    async function obtenerTareas() {
+        const response = await fetch('/tareas/obtenerTareas');
+        const tareas = await response.json();
+
+        const tareasTable = document.querySelector('#tareasTable tbody');
+        tareasTable.innerHTML = ''; // Limpiar la tabla
+
+        tareas.forEach(tarea => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${tarea.idTarea}</td>
+                <td id="nombreTarea-${tarea.idTarea}" contenteditable="false">${tarea.nombreTarea}</td>
+                <td id="fechaInicio-${tarea.idTarea}" contenteditable="false">${tarea.fechaInicio}</td>
+                <td id="fechaFin-${tarea.idTarea}" contenteditable="false">${tarea.fechaFin}</td>
+                <td id="estado-${tarea.idTarea}" contenteditable="false">${tarea.estado}</td>
+                <td>
+                    <button onclick="activarEdicionTarea(${tarea.idTarea})">Actualizar</button>
+                    <button onclick="eliminarTarea(${tarea.idTarea})">Eliminar</button>
+                </td>
+            `;
+            tareasTable.appendChild(tr);
+        });
+    }
+
+    window.onload = obtenerTareas;
+
+    // Función para eliminar tarea
+async function eliminarTarea(idTarea) {
+    const response = await fetch(`/tareas/eliminarTarea/${idTarea}`, {
+        method: 'DELETE',
+    });
+
+    const data = await response.json();
+    alert(data.mensaje); // Mostrar mensaje de éxito
+    obtenerTareas(); // Actualizar la lista de tareas
+}
+</script>
+<!-- Formulario para Insertar Nueva Tarea -->
+<div id="insertarTarea">
+    <h2>Agregar Nueva Tarea</h2>
+    <form id="formInsertarTarea">
+        <label for="nombreTarea">Nombre de la Tarea:</label>
+        <input type="text" id="nombreTarea" required><br><br>
+
+        <label for="fechaInicio">Fecha de Inicio:</label>
+        <input type="date" id="fechaInicio" required><br><br>
+
+        <label for="fechaFin">Fecha de Fin:</label>
+        <input type="date" id="fechaFin" required><br><br>
+
+        <label for="estado">Estado (0=Pendiente, 1=En Progreso, 2=Completado):</label>
+        <input type="number" id="estado" required><br><br>
+
+        <button type="submit">Crear Tarea</button>
+    </form>
+</div>
+<script>
+    document.querySelector('#formInsertarTarea').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const nombreTarea = document.querySelector('#nombreTarea').value;
+    const fechaInicio = document.querySelector('#fechaInicio').value;
+    const fechaFin = document.querySelector('#fechaFin').value;
+    const estado = document.querySelector('#estado').value;
+
+    const response = await fetch('/tareas/insertarTarea', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nombreTarea, fechaInicio, fechaFin, estado }),
+    });
+
+    const data = await response.json();
+    alert(data.mensaje); // Mostrar mensaje de éxito
+    obtenerTareas(); // Actualizar la lista de tareas
+});
+
+
+
+// Activar edición de una tarea
+function activarEdicionTarea(idTarea) {
+    // Habilitar la edición de los campos correspondientes
+    const nombreTarea = document.getElementById(`nombreTarea-${idTarea}`);
+    const fechaInicio = document.getElementById(`fechaInicio-${idTarea}`);
+    const fechaFin = document.getElementById(`fechaFin-${idTarea}`);
+    const estado = document.getElementById(`estado-${idTarea}`);
+
+    // Hacer editable el campo de texto o fecha
+    nombreTarea.contentEditable = "true";
+    estado.contentEditable = "true";
+    
+// Modificar para mostrar la fecha anterior y luego el selector de fecha
+
+    if (fechaInicio) {
+        fechaInicio.innerHTML = `<p>Fecha Anterior: </p>${fechaInicio.innerHTML}<br><input type="date" id="fechaInicioInput-${idTarea}" value="${fechaInicio.innerHTML}" />`;
+        fechaInicio.contentEditable = "false";
+    }
+    if (fechaFin) {
+        fechaFin.innerHTML = `<p>Fecha Anterior: </p> ${fechaFin.innerHTML}<br><input type="date" id="fechaFinInput-${idTarea}" value="${fechaFin.innerHTML}" />`;
+        fechaFin.contentEditable = "false";
+    }
+
+    // Cambiar el texto del botón a "Guardar"
+    const button = document.querySelector(`#tareasTable button[onclick="activarEdicionTarea(${idTarea})"]`);
+    button.textContent = "Guardar";
+    button.setAttribute("onclick", `guardarCambiosTarea(${idTarea})`);
+}
+
+// Función para guardar los cambios realizados en la tarea
+async function guardarCambiosTarea(idTarea) {
+    // Obtener los nuevos valores de los campos editados
+    const nombreTarea = document.getElementById(`nombreTarea-${idTarea}`).textContent;
+    const estado = document.getElementById(`estado-${idTarea}`).textContent;
+    const fechaInicio = document.getElementById(`fechaInicioInput-${idTarea}`).value;
+    const fechaFin = document.getElementById(`fechaFinInput-${idTarea}`).value;
+
+    // Enviar los datos actualizados al servidor
+    const response = await fetch(`/tareas/actualizarTarea/${idTarea}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nombreTarea, fechaInicio, fechaFin, estado }),
+    });
+
+    const data = await response.json();
+    alert(data.mensaje); // Mostrar mensaje de éxito
+    obtenerTareas(); // Actualizar la lista de tareas
+
+    // Desactivar la edición de los campos
+    document.getElementById(`nombreTarea-${idTarea}`).contentEditable = "false";
+    document.getElementById(`estado-${idTarea}`).contentEditable = "false";
+    document.getElementById(`fechaInicio-${idTarea}`).innerHTML = fechaInicio;
+    document.getElementById(`fechaFin-${idTarea}`).innerHTML = fechaFin;
+
+    // Cambiar el texto del botón a "Actualizar"
+    const button = document.querySelector(`#tareasTable button[onclick="guardarCambiosTarea(${idTarea})"]`);
+    button.textContent = "Actualizar";
+    button.setAttribute("onclick", `activarEdicionTarea(${idTarea})`);
+}
+
+</script>
+<!-- Formulario para Actualizar Tarea -->
+<div id="actualizarTarea" style="display:none;">
+    <h2>Actualizar Tarea</h2>
+    <form id="formActualizarTarea">
+        <input type="hidden" id="idTareaActualizar">
+        <label for="nombreTareaActualizar">Nombre:</label>
+        <input type="text" id="nombreTareaActualizar" required><br><br>
+
+        <label for="fechaInicioActualizar">Fecha de Inicio:</label>
+        <input type="date" id="fechaInicioActualizar" required><br><br>
+
+        <label for="fechaFinActualizar">Fecha de Fin:</label>
+        <input type="date" id="fechaFinActualizar" required><br><br>
+
+        <label for="estadoActualizar">Estado:</label>
+        <input type="number" id="estadoActualizar" required><br><br>
+
+        <button type="submit">Actualizar Tarea</button>
+    </form>
+</div>
+
+<style>
+/* Estilos generales */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 20px;
+    padding: 20px;
+}
+
+/* Contenedor principal */
+#tareas-lista, #insertarTarea, #actualizarTarea {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* Títulos */
+h2 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+/* Tabla de empleados */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Botones */
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    margin: 2px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button:active {
+    background-color: #004494;
+}
+
+/* Formularios */
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+input, select {
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+input:focus, select:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Ocultar formularios */
+#actualizarTarea {
+    display: none;
+}
+#tareasTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#tareasTable th, #tareasTable td {
+    text-align: center; /* Centra el texto en las celdas */
+    padding: 8px; /* Agrega un poco de espacio para que se vea más ordenado */
+    border: 1px solid #ddd; /* Opcional: agregar borde a las celdas */
+}
+
+</style>
