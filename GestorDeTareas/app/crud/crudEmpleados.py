@@ -147,3 +147,31 @@ def obtenerTareasEmpleado(idEmpleado):
     
     # Devolver las tareas junto con el rol
     return jsonify(tareas)
+
+@empleados_bp.route('/cambiarRol/<int:id_empleado>/<int:id_tarea>/', methods=['PUT'])
+def cambiar_rol_en_tarea(id_empleado, id_tarea):
+    try:
+        conexion = get_db()
+        cursor = conexion.cursor()
+
+        # Consultar el rol actual
+        cursor.execute("SELECT rol FROM tareaxempleado WHERE idEmpleado = %s AND idTarea = %s", (id_empleado, id_tarea))
+        resultado = cursor.fetchone()
+
+        if not resultado:
+            return jsonify({"mensaje": "Registro no encontrado"}), 404
+
+        nuevo_rol = 0 if resultado[0] == 1 else 1  # Cambiar entre 0 y 1
+
+        # Actualizar el rol en la tabla
+        cursor.execute("UPDATE tareaxempleado SET rol = %s WHERE idEmpleado = %s AND idTarea = %s", (nuevo_rol, id_empleado, id_tarea))
+        conexion.commit()
+
+        return jsonify({"mensaje": "Rol actualizado correctamente"})
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+    finally:
+        cursor.close()
+        conexion.close()

@@ -195,40 +195,42 @@ async function obtenerTareasEmpleado(idEmpleado) {
         tareasTd.innerHTML = 'No tiene tareas asociadas';
     } else {
         tareas.forEach((tarea, index) => {
-            const [idTarea, nombreTarea, rol] = tarea; // Desestructuramos el array de cada tarea
+            const [idTarea, nombreTarea, rol] = tarea;
 
-            if (nombreTarea) { // Verifica que exista nombreTarea
-                const tareaSpan = document.createElement('span');
+            if (nombreTarea) {
                 const tareaDiv = document.createElement('div');
-                tareaDiv.classList.add('tarea'); // Agregamos una clase para aplicar estilos si es necesario
-                
-                // Crear el contenido de la tarea
+                tareaDiv.classList.add('tarea');
+
+                // Mostrar la tarea y el rol actual
                 const nombreTareaSpan = document.createElement('span');
                 nombreTareaSpan.textContent = nombreTarea;
                 tareaDiv.appendChild(nombreTareaSpan);
-                
-                // Crear el contenido del rol "Jefe" si corresponde
-                if (rol == 1) {
-                    const jefeSpan = document.createElement('span');
-                    jefeSpan.textContent = 'Jefe';
-                    jefeSpan.style.color = 'red'; // Hacer el texto rojo
-                    jefeSpan.style.fontWeight = 'bold'; // Poner en negrita
-                    jefeSpan.style.marginLeft = '20px'
-                    tareaDiv.appendChild(jefeSpan);
-                }
 
-                // Crear el botón de eliminar tarea
+                const rolSpan = document.createElement('span');
+                rolSpan.textContent = rol == 1 ? 'Jefe' : 'Empleado';
+                rolSpan.style.fontWeight = 'bold';
+                rolSpan.style.marginLeft = '10px';
+                tareaDiv.appendChild(rolSpan);
+                const br = document.createElement('br');
+                tareaDiv.append(br)
+                // Botón para cambiar rol
+                const btnCambiarRol = document.createElement('button');
+                btnCambiarRol.textContent = 'Cambiar Rol';
+                btnCambiarRol.onclick = () => cambiarRolTareaEmpleado(idEmpleado, idTarea);
+                btnCambiarRol.style.marginLeft = '10px';
+                tareaDiv.appendChild(btnCambiarRol);
+
+                // Botón para desasignar tarea
                 const btnEliminar = document.createElement('button');
                 btnEliminar.textContent = 'Desasignar Tarea';
                 btnEliminar.onclick = () => eliminarTareaEmpleado(idEmpleado, idTarea);
-                const salto = document.createElement('br');
-                tareaDiv.appendChild(salto);
+                btnEliminar.style.marginLeft = '10px';
                 tareaDiv.appendChild(btnEliminar);
-                
-                // Si no es la última tarea, agregar <hr>
+
+                // Separador si no es la última tarea
                 if (index < tareas.length - 1) {
                     const hr = document.createElement('hr');
-                    tareaDiv.appendChild(hr); // Agregar <hr> después de la tarea
+                    tareaDiv.appendChild(hr);
                 }
 
                 tareasTd.appendChild(tareaDiv);
@@ -238,7 +240,24 @@ async function obtenerTareasEmpleado(idEmpleado) {
         });
     }
 }
+const cambiarRolTareaEmpleado = async (empleadoId, tareaId) => {
+    try {
+        const response = await fetch(`/empleados/cambiarRol/${empleadoId}/${tareaId}/`, {
+            method: 'PUT'
+        });
 
+        if (!response.ok) {
+            throw new Error('Error al cambiar el rol del empleado en la tarea');
+        }
+
+        // Opcional: actualizar la UI si es necesario
+        console.log('Cambio de rol exitoso');
+    } catch (error) {
+        console.error(error);
+    }
+    obtenerEmpleados(); 
+  
+};
 
     </script>
 
