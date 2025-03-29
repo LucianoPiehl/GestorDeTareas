@@ -67,7 +67,7 @@ def eliminarEmpleado(id):
     
     cursor.execute("""DELETE FROM empleado WHERE idEmpleado = %s""",(id,))
     db.commit()
-    return jsonify({"mensaje": "Empleado eliminada", "id": id})
+    return jsonify({"mensaje": "Empleado eliminado", "id": id})
 
 
 @empleados_bp.route('/actualizarEmpleado/<int:id>',methods=['PUT'])
@@ -86,7 +86,7 @@ def actualizarEmpleado(id):
     cursor.execute("""UPDATE empleado set nombre=%s,apellido=%s,rol=%s
                     WHERE idEmpleado = %s;""",(nombre, apellido, rol, id))
     db.commit()
-    return jsonify({"mensaje": "Empleado actualizada", "id": id, "nombre": nombre, "apellido": apellido,"rol": rol})
+    return jsonify({"mensaje": "Empleado actualizado", "id": id, "nombre": nombre, "apellido": apellido,"rol": rol})
 
 @empleados_bp.route('/asociarTareaAEmpleado/<int:idEmpleado>', methods=['POST'])
 def asociarTareaAEmpleado(idEmpleado):

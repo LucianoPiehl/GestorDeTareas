@@ -1,0 +1,136 @@
+<!-- HTML: Lista de Equipos -->
+<div id="equipos-lista">
+    <link rel="stylesheet" href="../static/css/equipos.css">
+    <h2>Lista de Equipos</h2>
+    <table id="equiposTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre del Equipo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Los equipos se insertarán aquí con JavaScript -->
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
+<!-- HTML: Formulario para insertar nuevo equipo -->
+<div id="insertarEquipo">
+    <h2>Agregar Nuevo Equipo</h2>
+    <form id="formInsertarEquipo">
+        <label for="nombreEquipo">Nombre del Equipo:</label>
+        <input type="text" id="nombreEquipo" required><br><br>
+
+        <button type="submit">Crear Equipo</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    cargarEquipos();
+    document.getElementById("formInsertarEquipo").addEventListener("submit", insertarEquipo);
+});
+
+
+
+function insertarEquipo(event) {
+    event.preventDefault();
+    const nombreEquipo = document.getElementById("nombreEquipo").value;
+    
+    fetch("equipos/insertarEquipo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombreEquipo: nombreEquipo })
+    }).then(response => response.json())
+      .then(() => {
+          cargarEquipos();
+          document.getElementById("formInsertarEquipo").reset();
+      });
+}
+document.addEventListener("DOMContentLoaded", cargarEquipos);
+
+// Cargar equipos en la tabla
+async function cargarEquipos() {
+    const response = await fetch('/equipos/obtenerEquipos');
+    const equipos = await response.json();
+
+    const equiposTable = document.querySelector('#equiposTable tbody');
+    equiposTable.innerHTML = ''; // Limpiar tabla
+
+    equipos.forEach(equipo => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${equipo.idEquipo}</td>
+            <td id="nombreEquipo-${equipo.idEquipo}" contenteditable="false">${equipo.nombreEquipo}</td>
+            <td>
+                <button onclick="activarEdicionEquipo(${equipo.idEquipo})">Actualizar</button>
+                <button onclick="eliminarEquipo(${equipo.idEquipo})">Eliminar</button>
+            </td>
+        `;
+        equiposTable.appendChild(tr);
+    });
+}
+
+// Activar edición del equipo
+function activarEdicionEquipo(idEquipo) {
+    const nombreEquipo = document.getElementById(`nombreEquipo-${idEquipo}`);
+
+    // Hacer editable el campo de nombre
+    nombreEquipo.contentEditable = "true";
+    nombreEquipo.focus(); // Poner el cursor en el campo
+
+    // Cambiar el botón a "Guardar"
+    const button = document.querySelector(`#equiposTable button[onclick="activarEdicionEquipo(${idEquipo})"]`);
+    button.textContent = "Guardar";
+    button.setAttribute("onclick", `guardarCambiosEquipo(${idEquipo})`);
+}
+
+// Guardar cambios del equipo
+async function guardarCambiosEquipo(idEquipo) {
+    const nombreEquipo = document.getElementById(`nombreEquipo-${idEquipo}`).textContent.trim();
+
+    const response = await fetch(`/equipos/actualizarEquipo/${idEquipo}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombreEquipo })
+    });
+
+    const data = await response.json();
+    alert(data.mensaje);
+
+    // Desactivar edición
+    document.getElementById(`nombreEquipo-${idEquipo}`).contentEditable = "false";
+
+    // Restaurar botón a "Actualizar"
+    const button = document.querySelector(`#equiposTable button[onclick="guardarCambiosEquipo(${idEquipo})"]`);
+    button.textContent = "Actualizar";
+    button.setAttribute("onclick", `activarEdicionEquipo(${idEquipo})`);
+}
+
+// Eliminar equipo
+async function eliminarEquipo(idEquipo) {
+    const response = await fetch(`/equipos/eliminarEquipo/${idEquipo}`, {
+        method: 'DELETE',
+    });
+
+    const data = await response.json();
+    alert(data.mensaje);
+    cargarEquipos();
+}
+
+
+function eliminarEquipo(id) {
+    fetch(`equipos/eliminarEquipo/${id}`, {
+        method: "DELETE"
+    }).then(response => response.json())
+      .then(() => cargarEquipos());
+}
+
+</script>
+    

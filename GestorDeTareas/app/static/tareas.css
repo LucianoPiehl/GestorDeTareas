@@ -1,0 +1,100 @@
+/* Estilos generales */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 20px;
+    padding: 20px;
+}
+
+/* Contenedor principal */
+#tareas-lista, #insertarTarea, #actualizarTarea {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* Títulos */
+h2 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+/* Tabla de empleados */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Botones */
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    margin: 2px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button:active {
+    background-color: #004494;
+}
+
+/* Formularios */
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+input, select {
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+input:focus, select:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Ocultar formularios */
+#actualizarTarea {
+    display: none;
+}
+#tareasTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#tareasTable th, #tareasTable td {
+    text-align: center; /* Centra el texto en las celdas */
+    padding: 8px; /* Agrega un poco de espacio para que se vea más ordenado */
+    border: 1px solid #ddd; /* Opcional: agregar borde a las celdas */
+}

@@ -51,7 +51,7 @@ def eliminarEquipo(id):
     
     cursor.execute("""DELETE FROM equipo WHERE idEquipo = %s""",(id,))
     db.commit()
-    return jsonify({"mensaje": "Equipo eliminada", "id": id})
+    return jsonify({"mensaje": "Equipo eliminado", "id": id})
 
 
 @equipos_bp.route('/actualizarEquipo/<int:id>',methods=['PUT'])
@@ -68,7 +68,7 @@ def actualizarEquipo(id):
     cursor.execute("""UPDATE equipo set nombreEquipo=%s
                     WHERE idEquipo = %s;""",(nombreEquipo, id))
     db.commit()
-    return jsonify({"mensaje": "Equipo actualizada", "id": id, "nombreEquipo": nombreEquipo})
+    return jsonify({"mensaje": "Equipo actualizado", "id": id, "nombreEquipo": nombreEquipo})
 
 
 @equipos_bp.route('/asociarEmpleadoAEquipo/<int:idEquipo>', methods=['POST'])
@@ -92,7 +92,7 @@ def asociarEmpleadoAEquipo(idEquipo):
 
     cursor.execute("SELECT 1 FROM equipo WHERE idEquipo = %s", (idEquipo,))
     if not cursor.fetchone():
-        return jsonify({"error": "Equipo no encontrada"}), 404
+        return jsonify({"error": "Equipo no encontrado"}), 404
 
     # Asociar la tarea al empleado
     cursor.execute("INSERT INTO empleadoxequipo (idEmpleado, idEquipo, rol) VALUES (%s, %s, %s)", (idEmpleado, idEquipo,rol))
